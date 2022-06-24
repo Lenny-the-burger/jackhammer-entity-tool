@@ -1,0 +1,9 @@
+{
+  "title": "Jackhammer entity tool",
+  "type": "tool",
+  "tags": [
+    "build",
+    "fun"
+  ],
+  "ignore": []
+}
