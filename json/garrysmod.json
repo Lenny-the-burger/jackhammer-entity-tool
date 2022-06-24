@@ -1,0 +1,617 @@
+{
+  "includes": [
+    "base.fgd",
+    "halflife2.fgd"
+  ],
+  "entities": [
+    {
+      "name": "func_ladder",
+      "type": "SolidClass",
+      "description": "Ladder. Players will be able to move freely along this brush, as if it was a ladder.Apply the toolsinvisibleladder material to a func_ladder brush."
+    },
+    {
+      "name": "func_detail_blocker",
+      "type": "SolidClass",
+      "description": "A brush entity that prevents detail sprites from being placed inside its volume.",
+      "parameters": [
+        {
+          "name": "base",
+          "values": [
+            "Targetname",
+            "Parentname"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "lua_run",
+      "type": "PointClass",
+      "description": "Runs Lua Code",
+      "parameters": [
+        {
+          "name": "base",
+          "values": [
+            "Targetname"
+          ]
+        },
+        {
+          "name": "iconsprite",
+          "values": [
+            "editor/lua_run.vmt"
+          ]
+        }
+      ],
+      "properties": [
+        {
+          "type": "string",
+          "name": "Code",
+          "title": "Code",
+          "description": "Lua code to run when triggered",
+          "deflt": ""
+        }
+      ],
+      "flags": [
+        {
+          "title": "Run code on spawn",
+          "value": 1,
+          "enabled": false
+        }
+      ],
+      "inputs": [
+        {
+          "name": "RunCode",
+          "description": "Run Code that was defined in the entity",
+          "type": "void"
+        },
+        {
+          "name": "RunPassedCode",
+          "description": "Run code that was passed as a variable",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "env_projectedtexture",
+      "type": "PointClass",
+      "description": "Projected texture entity.",
+      "parameters": [
+        {
+          "name": "base",
+          "values": [
+            "Targetname",
+            "Parentname",
+            "Angles"
+          ]
+        },
+        {
+          "name": "studioprop",
+          "values": [
+            "models/editor/spot.mdl"
+          ]
+        },
+        {
+          "name": "frustum",
+          "values": [
+            "lightfov",
+            "nearz",
+            "farz",
+            "lightcolor",
+            -1
+          ]
+        }
+      ],
+      "flags": [
+        {
+          "title": "Enabled",
+          "value": 1,
+          "enabled": true
+        }
+      ],
+      "properties": [
+        {
+          "type": "target_destination",
+          "name": "target",
+          "title": "target",
+          "description": "target"
+        },
+        {
+          "type": "float",
+          "name": "lightfov",
+          "title": "FOV",
+          "description": "FOV",
+          "deflt": "90.0"
+        },
+        {
+          "type": "float",
+          "name": "nearz",
+          "title": "NearZ",
+          "description": "Near Z for projected texture",
+          "deflt": "4.0"
+        },
+        {
+          "type": "float",
+          "name": "farz",
+          "title": "FarZ",
+          "description": "Far Z for projected texture",
+          "deflt": "750.0"
+        },
+        {
+          "type": "choices",
+          "name": "enableshadows",
+          "title": "Enable Shadows",
+          "description": "Enables/disables shadows from this projected texture.",
+          "deflt": 1,
+          "choices": {
+            "0": "No",
+            "1": "Yes"
+          }
+        },
+        {
+          "type": "choices",
+          "name": "lightonlytarget",
+          "title": "Light Only Target",
+          "description": "Limit flashlight effect to only effect target entity.",
+          "deflt": 0,
+          "choices": {
+            "0": "No",
+            "1": "Yes"
+          }
+        },
+        {
+          "type": "choices",
+          "name": "lightworld",
+          "title": "Light World",
+          "description": "Control whether flashlight effects static world geometry.",
+          "deflt": 1,
+          "choices": {
+            "0": "No",
+            "1": "Yes"
+          }
+        },
+        {
+          "type": "color255",
+          "name": "lightcolor",
+          "title": "Light Color",
+          "description": "Light Color RGB-Intensity",
+          "deflt": "255 255 255"
+        },
+        {
+          "type": "float",
+          "name": "lightstrength",
+          "title": "Light Strength",
+          "description": "How bright the light appears",
+          "deflt": "1.0"
+        },
+        {
+          "type": "integer",
+          "name": "cameraspace",
+          "title": "Camera Space",
+          "description": "Angles are interpreted as being relative to camera.",
+          "deflt": 0
+        },
+        {
+          "type": "string",
+          "name": "texturename",
+          "title": "Texture Name",
+          "description": "The name of the texture to use",
+          "deflt": "effects/flashlight001"
+        },
+        {
+          "type": "integer",
+          "name": "textureframe",
+          "title": "Texture Frame",
+          "description": "The frame of the texture",
+          "deflt": 0
+        }
+      ],
+      "inputs": [
+        {
+          "name": "TurnOn",
+          "description": "Turn on the texture",
+          "type": "void"
+        },
+        {
+          "name": "TurnOff",
+          "description": "Turn off the texture",
+          "type": "void"
+        },
+        {
+          "name": "SetFOV",
+          "description": "Set FOV",
+          "type": "float"
+        },
+        {
+          "name": "SpotlightTexture",
+          "description": "Set Spotlight Texture",
+          "type": "string"
+        },
+        {
+          "name": "Ambient",
+          "description": "Set Spotlight Ambient",
+          "type": "float"
+        }
+      ]
+    },
+    {
+      "name": "env_skypaint",
+      "type": "PointClass",
+      "description": "Control the sky colours",
+      "parameters": [
+        {
+          "name": "base",
+          "values": [
+            "Targetname"
+          ]
+        },
+        {
+          "name": "iconsprite",
+          "values": [
+            "editor/env_skypaint.vmt"
+          ]
+        }
+      ],
+      "properties": [
+        {
+          "type": "color1",
+          "name": "topcolor",
+          "title": "Sky Top Color",
+          "description": "The colour of the top of the sky",
+          "deflt": "0.2 0.5 1.0"
+        },
+        {
+          "type": "color1",
+          "name": "bottomcolor",
+          "title": "Sky Bottom Color",
+          "description": "The colour of the bottom of the sky",
+          "deflt": "0.8 1.0 1.0"
+        },
+        {
+          "type": "float",
+          "name": "fadebias",
+          "title": "Sky Fade Bias",
+          "description": "Controls the bias of the fade between top/bottom (1.0 is even)",
+          "deflt": "1.0"
+        },
+        {
+          "type": "float",
+          "name": "sunsize",
+          "title": "Sun Size",
+          "description": "Controls the size of the sun glow",
+          "deflt": "2.0"
+        },
+        {
+          "type": "vector",
+          "name": "sunnormal",
+          "title": "Sun Normal",
+          "description": "The position of the sun, expressed as a normal from the center of the world",
+          "deflt": "0.4 0.0 0.01"
+        },
+        {
+          "type": "choices",
+          "name": "sunposmethod",
+          "title": "Sun Position Method",
+          "description": "How should we determine the position of the sun?",
+          "deflt": 0,
+          "choices": {
+            "0": "Custom - Use the Sun Normal to position the sun",
+            "1": "Automatic - Find a env_sun entity and use that"
+          }
+        },
+        {
+          "type": "color1",
+          "name": "suncolor",
+          "title": "Sun Color",
+          "description": "The color of the sun glow (this is additive)",
+          "deflt": "0.2 0.1 0.0"
+        },
+        {
+          "type": "float",
+          "name": "duskscale",
+          "title": "Dusk Scale",
+          "description": "The size of the dusk effect (colouring of the horizon)",
+          "deflt": "1.0"
+        },
+        {
+          "type": "float",
+          "name": "duskintensity",
+          "title": "Dusk Intensity",
+          "description": "How powerful the dusk effect is",
+          "deflt": "1.0"
+        },
+        {
+          "type": "color1",
+          "name": "duskcolor",
+          "title": "Dusk Color",
+          "description": "The color of the dusk effect",
+          "deflt": "1.0 0.2 0.0"
+        },
+        {
+          "type": "choices",
+          "name": "drawstars",
+          "title": "Draw Stars",
+          "description": "",
+          "deflt": 0,
+          "choices": {
+            "0": "No - Don't draw stars",
+            "1": "Yes - Draw the stars please"
+          }
+        },
+        {
+          "type": "string",
+          "name": "startexture",
+          "title": "Star Texture",
+          "description": "The star texture",
+          "deflt": "skybox/starfield"
+        },
+        {
+          "type": "float",
+          "name": "starscale",
+          "title": "Star Scale",
+          "description": "How big the star texture should be",
+          "deflt": "0.5"
+        },
+        {
+          "type": "float",
+          "name": "starfade",
+          "title": "Star Fade",
+          "description": "Fade the star texture towards the horizon",
+          "deflt": "1.0"
+        },
+        {
+          "type": "float",
+          "name": "starspeed",
+          "title": "Star Speed",
+          "description": "How fast the star texture should scroll across the sky",
+          "deflt": "0.01"
+        },
+        {
+          "type": "float",
+          "name": "hdrscale",
+          "title": "HDR Scale",
+          "description": "When rendering your skybox in HDR mode, output will be scaled by this amount.",
+          "deflt": "0.66"
+        }
+      ]
+    },
+    {
+      "name": "beam_spotlight",
+      "type": "PointClass",
+      "description": "An entity to draw a spotlight. Will draw a beam when the player views it side on, and a halo when it's facing towards the player. Unless the 'No Dynamic Light' spawnflag is checked, it will also create a dynamic light wherever the end of the spotlight rests.This spotlight is entirely client side, it is not sync'd across clients.",
+      "parameters": [
+        {
+          "name": "base",
+          "values": [
+            "Targetname",
+            "Parentname",
+            "RenderFields",
+            "Angles",
+            "DXLevelChoice"
+          ]
+        },
+        {
+          "name": "studio",
+          "values": [
+            "models/editor/cone_helper.mdl"
+          ]
+        }
+      ],
+      "flags": [
+        {
+          "title": "Start On",
+          "value": 1,
+          "enabled": true
+        },
+        {
+          "title": "No Dynamic Light",
+          "value": 2,
+          "enabled": false
+        },
+        {
+          "title": "Start rotation on",
+          "value": 4,
+          "enabled": false
+        },
+        {
+          "title": "Reverse Direction",
+          "value": 8,
+          "enabled": false
+        },
+        {
+          "title": "X Axis",
+          "value": 16,
+          "enabled": false
+        },
+        {
+          "title": "Y Axis",
+          "value": 32,
+          "enabled": false
+        }
+      ],
+      "properties": [
+        {
+          "type": "integer",
+          "name": "maxspeed",
+          "title": "Max Rotation Speed",
+          "description": "The maximum rotation speed of the spotlight, in degrees per second.",
+          "deflt": 100
+        },
+        {
+          "type": "integer",
+          "name": "spotlightlength",
+          "title": "Spotlight Length",
+          "description": "Length of the spotlight beam.",
+          "deflt": 500
+        },
+        {
+          "type": "integer",
+          "name": "spotlightwidth",
+          "title": "Spotlight Width",
+          "description": "Width of the spotlight beam.",
+          "deflt": 50
+        },
+        {
+          "type": "color255",
+          "name": "rendercolor",
+          "title": "Color (R G B)",
+          "deflt": "255 255 255"
+        },
+        {
+          "type": "float",
+          "name": "HDRColorScale",
+          "title": "HDR color scale.",
+          "description": "float value to multiply sprite color by when running in HDR mode.",
+          "deflt": "0.7"
+        }
+      ],
+      "inputs": [
+        {
+          "name": "LightOn",
+          "description": "Turn the spotlight on.",
+          "type": "void"
+        },
+        {
+          "name": "LightOff",
+          "description": "Turn the spotlight off",
+          "type": "void"
+        },
+        {
+          "name": "Start",
+          "description": "Start the rotator rotating.",
+          "type": "void"
+        },
+        {
+          "name": "Stop",
+          "description": "Stop the rotator from rotating.",
+          "type": "void"
+        },
+        {
+          "name": "Reverse",
+          "description": "Reverse the direction of rotation of the rotator.",
+          "type": "void"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "OnLightOn",
+          "description": "Fires when light turns on.",
+          "type": "void"
+        },
+        {
+          "name": "OnLightOff",
+          "description": "Fires when light turns off.",
+          "type": "void"
+        }
+      ]
+    },
+    {
+      "name": "trigger_catapult",
+      "type": "SolidClass",
+      "description": "Catapult the player in a given diretion at a given velocity.",
+      "parameters": [
+        {
+          "name": "base",
+          "values": [
+            "Trigger"
+          ]
+        }
+      ],
+      "properties": [
+        {
+          "type": "float",
+          "name": "playerSpeed",
+          "title": "Player Speed",
+          "description": "Speed at which to launch the players (u/sec)",
+          "deflt": 450
+        },
+        {
+          "type": "float",
+          "name": "physicsSpeed",
+          "title": "Physics Object Speed",
+          "description": "Speed at which to launch physics objects (u/sec)",
+          "deflt": 450
+        },
+        {
+          "type": "integer",
+          "name": "useThresholdCheck",
+          "title": "Use Threshold Check",
+          "deflt": 0
+        },
+        {
+          "type": "float",
+          "name": "entryAngleTolerance",
+          "title": "Entry Angle Tolerance",
+          "description": "Flung object's velocity must be pointing this much at the target. Specify a value between [-1...1] 1 means exactly, 0 means within 180 degrees -1 means any angle is accepted. This is only used if Use Threshold Check is set to yes.",
+          "deflt": "0.0"
+        },
+        {
+          "type": "integer",
+          "name": "useExactVelocity",
+          "title": "Use Exact Velocity",
+          "description": "Try to fling exactly at the speed specified - this prevents the added upward velocity from a launch target.",
+          "deflt": 0
+        },
+        {
+          "type": "choices",
+          "name": "exactVelocityChoiceType",
+          "title": "Exact Solution Method",
+          "description": "Using exact velocity generates two correct solutions. Use this to force which one you choose.",
+          "deflt": 0,
+          "choices": {
+            "0": "Best",
+            "1": "Solution One",
+            "2": "Solution Two"
+          }
+        },
+        {
+          "type": "float",
+          "name": "lowerThreshold",
+          "title": "Lower Threshold",
+          "description": "Flung object must be within this percentage value in order to activate fling. Specify a value between [0...1] (default is .15) This is only used if Use Threshold Check is set to yes.",
+          "deflt": "0.15"
+        },
+        {
+          "type": "float",
+          "name": "upperThreshold",
+          "title": "Upper Threshold",
+          "description": "Flung object must be within this percentage value in order to activate fling. Specify a value between [0...1] (default is .30) This is only used if Use Threshold Check is set to yes.",
+          "deflt": "0.30"
+        },
+        {
+          "type": "angle",
+          "name": "launchDirection",
+          "title": "Launch direction",
+          "description": "Direction to launch the player in.",
+          "deflt": "0 0 0"
+        },
+        {
+          "type": "target_destination",
+          "name": "launchTarget",
+          "title": "Launch target",
+          "description": "Entity to try to 'hit' when we're launched.",
+          "deflt": ""
+        },
+        {
+          "type": "integer",
+          "name": "onlyVelocityCheck",
+          "title": "Only check velocity",
+          "description": "Only check velocity of the touching object - don't actually catapult it.  Use in conjunction with OnCatapulted to create velocity checking triggers.  Only works when Use Threshhold Check is enabled.",
+          "deflt": 0
+        },
+        {
+          "type": "integer",
+          "name": "applyAngularImpulse",
+          "title": "Apply angular impulse",
+          "description": "If a random angular impulse should be applied to physics objects being catapulted.",
+          "deflt": 1
+        }
+      ],
+      "outputs": [
+        {
+          "name": "OnCatapulted",
+          "description": "The object has been launched.",
+          "type": "void"
+        }
+      ]
+    }
+  ]
+}
