@@ -1,7 +1,7 @@
 local function create_egui( className, keys, flags, io, misc )
     local frame = vgui.Create("DFrame")
     frame:SetTitle("Entity editor")
-    frame:SetSize(800, 700)
+    frame:SetSize(1000, 900)
     frame:SetSizable(true)
     frame:SetBackgroundBlur(true)
     frame:SetIcon("icon16/wand.png")
@@ -48,10 +48,64 @@ local function create_egui( className, keys, flags, io, misc )
     ]]--
 
     -- ====================== ents_inf_panel ======================
+
+    -- class selector
     local e_class_selector_lbl = vgui.Create( "DLabel", ents_inf_panel )
     e_class_selector_lbl:SetDark( 1 )
     e_class_selector_lbl:SetPos( 15, 15)
     e_class_selector_lbl:SetText( "Class:" )
+
+    local e_class_selector_parent = vgui.Create( "DPanel", ents_inf_panel )
+    e_class_selector_parent:SetPos( 15, 35 )
+    e_class_selector_parent:SetSize( 200, 25 )
+
+    -- TODO: this needs to be a dropdown menu with all the classnames, idk how
+    local e_class_selector_edit = vgui.Create( "DTextEntry", e_class_selector_parent )
+    e_class_selector_edit:SetText( className )
+    e_class_selector_edit:SetPlaceholderText( "Entity class name" )
+    e_class_selector_edit:Dock( TOP )
+	e_class_selector_edit:DockMargin( 0, 5, 0, 0 )
+
+    -- keyvalue editor
+    local e_keys_lbl = vgui.Create( "DLabel", ents_inf_panel )
+    e_keys_lbl:SetDark( 1 )
+    e_keys_lbl:SetPos( 15, 80 )
+    e_keys_lbl:SetText( "Keyvalues:" )
+
+    local e_keys_parent = vgui.Create( "DPanel", ents_inf_panel )
+    e_keys_parent:SetPos( 15, 115 )
+    e_keys_parent:SetSize( 600, 700 )
+
+    local e_keys_scroll = vgui.Create( "DScrollPanel", e_keys_parent )
+    e_keys_scroll:Dock( FILL )
+
+    --[[ loop through all the keys and for each
+            add a DPanel to the scroll box
+            add a DLabel to the panel with the key name
+            add a DTextEntry to the panel with the key value
+    ]]
+
+    for k, v in pairs(keys) do
+
+        local e_key_entry_parent = e_keys_scroll:Add( "DPanel" )
+
+        local e_key_entry_lbl = vgui.Create( "DLabel", e_key_entry_parent )
+        e_key_entry_lbl:SetDark( 1 )
+        e_key_entry_lbl:SetSize( 200, 25 )
+        e_key_entry_lbl:SetText( tostring(k) )
+        e_key_entry_lbl:Dock( LEFT )
+        e_key_entry_lbl:DockMargin( 10, 0, 0, 0 )
+
+        local e_key_entry_edit = vgui.Create( "DTextEntry", e_key_entry_parent )
+        e_key_entry_edit:SetText( tostring(v) )
+        e_key_entry_edit:Dock( FILL )
+
+        e_key_entry_parent:Dock( TOP )
+	    e_key_entry_parent:DockMargin( 0, 0, 0, 5 )
+
+    end
+
+    print(keys["targetname"])
 
 end
 
@@ -82,8 +136,6 @@ net.Receive( "startEditor", function( len, ply ) -- recieved when we need to ope
     local misc = net.ReadTable() -- this one is just other stuff like gmod properties, etc.
 
     -- handle start editor
-
-    print("we got it")
 
     create_egui( class, keys, flags, io_chainlinks, misc )
 
