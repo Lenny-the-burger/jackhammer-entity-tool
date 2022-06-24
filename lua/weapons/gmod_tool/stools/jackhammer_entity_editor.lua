@@ -18,9 +18,20 @@ function TOOL:LeftClick( trace )
     -- 1. the entity's class
     -- 2. the entity's keyvalues
     -- 3. check for the entity's io chainlinks in the 
+
+    local ply = self:GetOwner()
+    -- tell the client to start the editor
+    net.Start( "startEditor" )
+        net.WriteString( ent:GetClass() )
+        net.WriteTable( ent:GetKeyValues() )
+        net.WriteTable( {} ) -- flags
+        net.WriteTable( {} ) -- io chainlinks
+        net.WriteTable( {} ) -- misc
+    net.Send( ply )
+
+    print("oh yeah")
     
     return true
-
 end
 
 -- If origin and destination entities are different class this will require
@@ -30,7 +41,9 @@ function TOOL:RightClick( trace )
 	if ( IsValid( ent.AttachedEntity ) ) then ent = ent.AttachedEntity end
 	if ( !IsValid( ent ) ) then return false end -- The entity is valid and isn't worldspawn
 	if ( CLIENT ) then return true end
-    
+
+    -- copy paste time!!!!
+
     return true
 end
 

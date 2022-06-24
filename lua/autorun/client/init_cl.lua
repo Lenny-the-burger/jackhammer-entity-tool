@@ -1,4 +1,4 @@
-local function create_egui()
+local function create_egui( className, keys, flags, io, misc )
     local frame = vgui.Create("DFrame")
     frame:SetTitle("Entity editor")
     frame:SetSize(800, 700)
@@ -54,3 +54,37 @@ local function create_egui()
     e_class_selector_lbl:SetText( "Class:" )
 
 end
+
+--[[ Set up net messages:
+
+    Client needs to recieve when to create the gui.
+
+    Client needs to send keyvalues when we want to change the entity.
+
+    Client also sends when we refresh the entity.
+
+    All changes (except entity class change) are only applied when we hit the apply button
+        to simplify the process, i do not care enough to make it more dynamic, nobody will'
+        care if i do.
+]]
+
+-- SEND:
+
+ --updateEnt: send when we want to update the entity
+    -- params: ent (entity to modify), table (table of flags), table (io table), table (misc table)
+
+-- RECIEVE
+net.Receive( "startEditor", function( len, ply ) -- recieved when we need to open the gui
+    local class = net.ReadString()
+    local keys = net.ReadTable()          -- for now we will just send all the keyvalues, io, and flags every time
+    local flags = net.ReadTable()         -- if we run into the limit ill fix it in a later version
+    local io_chainlinks = net.ReadTable()
+    local misc = net.ReadTable() -- this one is just other stuff like gmod properties, etc.
+
+    -- handle start editor
+
+    print("we got it")
+
+    create_egui( class, keys, flags, io_chainlinks, misc )
+
+end )
