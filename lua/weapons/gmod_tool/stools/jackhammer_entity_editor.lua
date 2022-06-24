@@ -63,6 +63,7 @@ local function getSecretValues( ent, vals )
     vals["angle"] = ent:GetAngles()
     vals["origin"] = ent:GetPos()
     vals["targetname"] = ent:GetName()
+    vals["model"] = ent:GetModel()
 
     return vals
 end
@@ -73,13 +74,12 @@ function TOOL:LeftClick( trace )
 	if ( IsValid( ent.AttachedEntity ) ) then ent = ent.AttachedEntity end
 	if ( !IsValid( ent ) ) then return false end -- The entity is valid and isn't worldspawn
 	if ( CLIENT ) then return true end
+    local ply = self:GetOwner()
 
     -- use net messages to send information about the entity to the client:
     -- 1. the entity's class
     -- 2. the entity's keyvalues
     -- 3. check for the entity's io chainlinks in the 
-
-    local ply = self:GetOwner()
 
     local keys = ent:GetKeyValues()
     keys = getSecretValues( ent, keys )
@@ -103,6 +103,7 @@ function TOOL:RightClick( trace )
 	if ( IsValid( ent.AttachedEntity ) ) then ent = ent.AttachedEntity end
 	if ( !IsValid( ent ) ) then return false end -- The entity is valid and isn't worldspawn
 	if ( CLIENT ) then return true end
+    local ply = self:GetOwner()
 
     -- copy paste time!!!!
 
@@ -112,7 +113,31 @@ end
 -- Creates a new entity from scratch, just save the location of the trace and
 -- tell the client to open the editor with forced entity refresh.
 function TOOL:Reload( trace )
+    local ply = self:GetOwner()
+    local spawnPos = trace.HitPos
 
+    -- create an info_target at the spawn position and pass it to the client
+    -- so the client can create a new entity at the spawn position
+    local ent = ents.Create( "info_target" )
+    ent:SetPos( spawnPos )
+
+    local keys = ent:GetKeyValues()
+    keys["origin"] = spawnPos
+
+    -- add the info target to the client's undo list
+    undo.Create("JHammer entity")
+    undo.AddEntity(ent)
+    undo.SetPlayer(ply)
+    undo.Finish()
+
+    -- tell the client to start the editor
+    net.Start( "startEditor" )
+        net.WriteString( ent:GetClass() )
+        net.WriteTable( keys )
+        net.WriteTable( {} ) -- flags
+        net.WriteTable( {} ) -- io chainlinks
+        net.WriteTable( {} ) -- misc
+    net.Send( ply )
 
     return true
 end

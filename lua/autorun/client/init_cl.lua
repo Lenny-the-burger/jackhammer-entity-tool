@@ -76,36 +76,33 @@ local function create_egui( className, keys, flags, io, misc )
     e_keys_parent:SetPos( 15, 115 )
     e_keys_parent:SetSize( 600, 700 )
 
-    local e_keys_scroll = vgui.Create( "DScrollPanel", e_keys_parent )
-    e_keys_scroll:Dock( FILL )
+    local e_keys_list = vgui.Create( "DListView", e_keys_parent )
+    e_keys_list:Dock( FILL )
+    e_keys_list:SetMultiSelect( false )
+    e_keys_list:AddColumn( "Key" )
+    e_keys_list:AddColumn( "Value" )
 
-    --[[ loop through all the keys and for each
-            add a DPanel to the scroll box
-            add a DLabel to the panel with the key name
-            add a DTextEntry to the panel with the key value
-    ]]
+    -- manual keyvalue list order override:
+    local e_override_keys_list = {}
+    e_override_keys_list["classname"] = true -- this is handled already, so we don't need to add it here
 
-    for k, v in pairs(keys) do
+    e_keys_list:AddLine( "Name", keys["targetname"] )
+    e_override_keys_list["targetname"] = true
 
-        local e_key_entry_parent = e_keys_scroll:Add( "DPanel" )
+    e_keys_list:AddLine( "Pitch Yaw Roll (Y Z X)", keys["angle"] )
+    e_override_keys_list["angle"] = true
 
-        local e_key_entry_lbl = vgui.Create( "DLabel", e_key_entry_parent )
-        e_key_entry_lbl:SetDark( 1 )
-        e_key_entry_lbl:SetSize( 200, 25 )
-        e_key_entry_lbl:SetText( tostring(k) )
-        e_key_entry_lbl:Dock( LEFT )
-        e_key_entry_lbl:DockMargin( 10, 0, 0, 0 )
-
-        local e_key_entry_edit = vgui.Create( "DTextEntry", e_key_entry_parent )
-        e_key_entry_edit:SetText( tostring(v) )
-        e_key_entry_edit:Dock( FILL )
-
-        e_key_entry_parent:Dock( TOP )
-	    e_key_entry_parent:DockMargin( 0, 0, 0, 5 )
-
+    -- if the entity has a model, override it to the top of the list
+    if keys["model"] then
+        e_keys_list:AddLine( "Model", keys["model"] )
+        e_override_keys_list["model"] = true
     end
 
-    print(keys["targetname"])
+    for k, v in pairs(keys) do -- loop through the key values, if the key is in the override ignore it, else add to list
+        if e_override_keys_list[k] == nil then
+            e_keys_list:AddLine( k, v )
+        end
+    end
 
 end
 
