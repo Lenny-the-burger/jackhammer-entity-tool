@@ -1,6 +1,22 @@
 -- time to parse the giant json files yipee!!!
-local files, dirs = file.Find("addons/jackhammer_entity_tool/json/*.json", "GAME")
+local json_files, json_dirs = file.Find("addons/jackhammer_entity_tool/json/*.json", "GAME")
 
+local ents_fgs_data = {} -- master table of all entity data
+
+for k, v in ipairs(json_files) do
+    local json_file = util.JSONToTable(file.Read("addons/jackhammer_entity_tool/json/" .. v, "GAME"))
+    ents_fgs_data[v] = json_file.entities -- we deont need the includes
+end
+
+--[[ example code to loop through all the entities in the json files and find "env_fire"
+
+for k, v in pairs(ents_fgs_data) do
+        for k2, v2 in pairs(v) do
+            if v2.name == "env_fire" then PrintTable(v2, 0) end
+        end
+    end
+
+]]
 
 local function create_egui( className, keys, flags, io, misc )
     local frame = vgui.Create("DFrame")
