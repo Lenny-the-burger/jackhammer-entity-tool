@@ -1,14 +1,14 @@
 -- time to parse the giant json files yipee!!!
 local json_files, json_dirs = file.Find("addons/jackhammer_entity_tool/json/*.json", "GAME")
 
-local ents_fgs_data = {} -- master table of all entity data
+local ents_fgds_data = {} -- master table of all entity data
 
 for k, v in ipairs(json_files) do
     local json_file = util.JSONToTable(file.Read("addons/jackhammer_entity_tool/json/" .. v, "GAME"))
-    ents_fgs_data[v] = json_file.entities -- we deont need the includes
+    ents_fgds_data[v] = json_file.entities -- we deont need the includes
 end
 
---[[ example code to loop through all the entities in the json files and find "env_fire"
+--[[ Example code to loop through all the entities in the json files and find "env_fire"
 
 for k, v in pairs(ents_fgs_data) do
         for k2, v2 in pairs(v) do
@@ -19,6 +19,44 @@ for k, v in pairs(ents_fgs_data) do
 ]]
 
 local function create_egui( className, keys, flags, io, misc )
+    -- before we do anything, get all the entity fgs data needed
+
+    local ent_fgds_data = {}
+    for k, v in pairs(ents_fgds_data) do
+        for k2, v2 in pairs(v) do
+            if v2.name == className then ent_fgds_data = v2 end
+        end
+    end
+
+    if ent_fgds_data.name == nil then 
+        MsgC( Color( 255, 90, 90 ), "[JHammer] ERROR: No entity data found for " .. className .. "! This is probably a custom lua entity. \n")
+        -- fill data with placeholder data
+        ent_fgds_data = {
+            name = className,
+            description = "No description found, or this is a custom Lua entity.",
+            type = "Unkown",
+            parameters = {},
+            properties = {},
+            flags = {},
+            outputs = {},
+            intputs = {}, 
+        }
+    end
+
+    -- loop through the properties and create a keys_lookup_table where there is name:{title, type, description}
+    -- this is so we dnt have to loop every time a row is selecetd in the table
+    -- remember that since things inherit from each other we also need to recursisvly loop through
+    -- the properties of the parent classes which can be found in the base parameter of the class
+    -- to get the full list of properties!!!
+    local keys_lookup_table = {}
+    local function recursive_get_loop( tbl )
+        -- first look at base parameter if it exists, and lookup every class recursivly
+        -- once we get to maximum depth, we collapse the table together and keep going
+        -- TODO: redo how entity fgd data is held so we can lookup ents without a need to loop through a giant table
+    end
+    recursive_get_loop(ent_fgds_data.properties)
+
+
     local frame = vgui.Create("DFrame")
     frame:SetTitle("Entity editor")
     frame:SetSize(1000, 900)
@@ -120,9 +158,37 @@ local function create_egui( className, keys, flags, io, misc )
 
     for k, v in pairs(keys) do -- loop through the key values, if the key is in the override ignore it, else add to list
         if e_override_keys_list[k] == nil then
-            e_keys_list:AddLine( k, v )
+            e_keys_list:AddLine( keys_lookup_table[k].title, v )
         end
     end
+
+    local e_description_text_actual = ent_fgds_data.description
+
+    e_keys_list.OnRowSelected = function( panel, rowIndex, row )
+        local key = row:GetValue( 1 )
+        local val = row:GetValue( 2 )
+    end
+
+    local e_description_parent = vgui.Create( "DPanel", ents_inf_panel )
+    e_description_parent:SetPos( 635, 250 )
+    e_description_parent:SetSize( 300, 300 )
+    e_description_parent:SetPaintBackground( false )
+    
+    local e_description_lbl = vgui.Create( "DLabel", e_description_parent )
+    e_description_lbl:SetDark( 1 )
+    e_description_lbl:SetText( "Description:" )
+    e_description_lbl:Dock( TOP )
+
+    local e_description_text = vgui.Create( "DTextEntry", e_description_parent )
+    e_description_text:SetText( e_description_text_actual )
+    e_description_text:SetMultiline( true )
+    e_description_text:Dock( FILL )
+    e_description_text:SetEditable( false )
+    e_description_text.AllowInput = function( self, stringValue )
+        return false
+    end
+
+
 end
 
 --[[ Set up net messages:
