@@ -9322,7 +9322,7 @@
     {
       "name": "info_target",
       "type": "PointClass",
-      "description": "An entity that does nothing. Very useful as a positioning entity for other entities to refer to (i.e. the endpoint of an env_beam)",
+      "description": "An entity that does nothing. Very useful as a positioning entity for other entities to refer to (i.e. the endpoint of an env_beam) \n\n [JHammer] This is also the default entity when creating a entity from scratch.",
       "parameters": [
         {
           "name": "base",
