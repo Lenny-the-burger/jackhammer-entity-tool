@@ -1,3 +1,0 @@
-base.json
-garrysmod.json
-halflife2.json
