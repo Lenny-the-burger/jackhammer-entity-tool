@@ -1,3 +1,5 @@
+local json = require("json")
+
 local function create_egui( className, keys, flags, io, misc )
     local frame = vgui.Create("DFrame")
     frame:SetTitle("Entity editor")
@@ -103,6 +105,20 @@ local function create_egui( className, keys, flags, io, misc )
             e_keys_list:AddLine( k, v )
         end
     end
+
+    -- time to parse the giant json files yipee!!!
+    local mount_txt_file = print( file.Read( "mounted_fgds.txt", "GAME" ) )
+    
+    local json_file_name = ""
+    print(mount_txt_file)
+    --[[
+
+    while json_file_name ~= "\n" do
+        json_file_name = mount_txt_file:ReadLine()
+        print(json_file_name)
+    end
+
+    mount_txt_file:Close()]]
 
 end
 
