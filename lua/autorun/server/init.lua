@@ -6,17 +6,17 @@ local function setSecretValues( ent, vals )
     --[[ A bunch of keyvalues are not attainable using ent:GetKeyValues() so we have to get the manually >:(
     ]]
 
-    ent:SetColor(vals["rendercolor32"])
-    vals["disableshadows"] = ent:GetInternalVariable("EF_NOSHADOW")
-    local min, max = ent:GetCollisionBounds()
-    vals["mins"] = min
-    vals["maxs"] = max
-    vals["disablereceiveshadows "] = ent:GetInternalVariable("EF_NORECEIVESHADOW")
-    vals["nodamageforces  "] = ent:GetInternalVariable("EFL_NO_DAMAGE_FORCES")
-    vals["angle"] = ent:GetAngles()
-    vals["origin"] = ent:GetPos()
-    vals["targetname"] = ent:GetName()
-    vals["model"] = ent:GetModel()
+    if vals["rendercolor32"] ~= nil then ent:SetColor(vals["rendercolor32"]) end
+    if vals["disableshadows"] ~= nil then ent:SetSaveValue("EF_NOSHADOW", vals["disableshadows"]) end
+    --local min, max = ent:GetCollisionBounds()
+    --vals["mins"] = min
+    --vals["maxs"] = max
+    if vals["disablereceiveshadows"] ~= nil then ent:SetSaveValue("EF_NORECEIVESHADOW", vals["disablereceiveshadows"]) end
+    if vals["nodamageforces"] ~= nil then ent:SetSaveValue("EFL_NO_DAMAGE_FORCES", vals["nodamageforces"]) end
+    if vals["angle"] ~= nil then ent:SetAngles(vals["angle"]) end
+    if vals["origin"] ~= nil then ent:SetPos(vals["origin"]) end
+    if vals["targetname"] ~= nil then ent:SetName(vals["targetname"]) end
+    if vals["model"] ~= nil then ent:SetModel(vals["model"]) end
 end
 
 --[[
@@ -89,7 +89,6 @@ net.Receive( "jhammer_e_applyEdit", function( len, ply ) -- recieved when we are
     for k, v in pairs( keys ) do
         ent_sv:SetKeyValue( k, tostring(v) )
     end
-    --ent_sv:SetName( keys["targetname"] )
-    --setSecretValues( ent, keys )
+    setSecretValues( ent_sv, keys )
 
 end )
