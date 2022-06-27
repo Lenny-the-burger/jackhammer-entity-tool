@@ -5,30 +5,32 @@ local ents_fgds_data = {} -- master table of all entity data
 
 for k, v in ipairs(json_files) do
     local json_file = util.JSONToTable(file.Read("addons/jackhammer_entity_tool/json/" .. v, "GAME"))
-    ents_fgds_data[v] = json_file.entities -- we deont need the includes
+    for k2, v2 in ipairs(json_file.entities) do
+        v2.gametype = v
+        ents_fgds_data[v2.name] = v2
+    end
 end
 
---[[ Example code to loop through all the entities in the json files and find "env_fire"
-
-for k, v in pairs(ents_fgs_data) do
-        for k2, v2 in pairs(v) do
-            if v2.name == "env_fire" then PrintTable(v2, 0) end
+-- function to perform function func on all entries and sub entries in table tbl recursively
+-- WARNING: this modifies in place
+local function super_vectorize(tbl, func)
+    for k, v in pairs(tbl) do
+        if type(v) == "table" then
+            tbl[k] = func(k)
+            super_vectorize(v, func)
+        else
+            tbl[k] = func(v)
         end
     end
+end
 
-]]
-
+-- main function to create gui
 local function create_egui( className, keys, flags, io, misc )
     -- before we do anything, get all the entity fgs data needed
 
-    local ent_fgds_data = {}
-    for k, v in pairs(ents_fgds_data) do
-        for k2, v2 in pairs(v) do
-            if v2.name == className then ent_fgds_data = v2 end
-        end
-    end
+    local ent_fgds_data = ents_fgds_data[className]
 
-    if ent_fgds_data.name == nil then 
+    if ent_fgds_data == nil then 
         MsgC( Color( 255, 90, 90 ), "[JHammer] ERROR: No entity data found for " .. className .. "! This is probably a custom lua entity. \n")
         -- fill data with placeholder data
         ent_fgds_data = {
@@ -43,18 +45,44 @@ local function create_egui( className, keys, flags, io, misc )
         }
     end
 
-    -- loop through the properties and create a keys_lookup_table where there is name:{title, type, description}
-    -- this is so we dnt have to loop every time a row is selecetd in the table
-    -- remember that since things inherit from each other we also need to recursisvly loop through
-    -- the properties of the parent classes which can be found in the base parameter of the class
-    -- to get the full list of properties!!!
-    local keys_lookup_table = {}
-    local function recursive_get_loop( tbl )
-        -- first look at base parameter if it exists, and lookup every class recursivly
-        -- once we get to maximum depth, we collapse the table together and keep going
-        -- TODO: redo how entity fgd data is held so we can lookup ents without a need to loop through a giant table
+    -- get the ineritence tree for entity, recusively
+    -- input: the entity fgd data
+    local function get_ent_inheritance_tree( tbl )
+        local ret = {}
+        ret[tbl.name] = {}
+        -- if lua end just return
+        if tbl.type == "Unkown" then return {} end
+
+        -- if no inheritances then return empty
+        if tbl.parameters == nil then return {tbl.name} end
+
+        -- base is always the first property i think check anyway
+        if tbl.parameters[1].name ~= "base" then return {} end
+
+        for k, v in ipairs(tbl.parameters[1].values) do
+            table.insert(ret[tbl.name], get_ent_inheritance_tree( ents_fgds_data[v] ))
+        end
+
+        return ret
     end
-    recursive_get_loop(ent_fgds_data.properties)
+
+    local ent_inheritance_tree = get_ent_inheritance_tree( ent_fgds_data )
+
+    local keys_lookup_table = {}
+    -- loop through the ent_inheritance_tree, for each entry add the print name to the keys_lookup_table
+    local temp_table = ent_inheritance_tree
+    super_vectorize(temp_table, function (inp) 
+        if type(inp) ~= "string" then return end
+        if inp == nil then return end
+        if ents_fgds_data[inp].properties == nil then return end
+
+        --PrintTable(ents_fgds_data[inp])
+        for k, v in pairs(ents_fgds_data[inp].properties) do
+            keys_lookup_table[v.name] = v.title
+        end
+
+        return 0
+    end)
 
 
     local frame = vgui.Create("DFrame")
@@ -158,7 +186,11 @@ local function create_egui( className, keys, flags, io, misc )
 
     for k, v in pairs(keys) do -- loop through the key values, if the key is in the override ignore it, else add to list
         if e_override_keys_list[k] == nil then
-            e_keys_list:AddLine( keys_lookup_table[k].title, v )
+            if keys_lookup_table[k] ~= nil then
+                e_keys_list:AddLine( keys_lookup_table[k], v )
+            else
+                e_keys_list:AddLine( k, v )
+            end
         end
     end
 
