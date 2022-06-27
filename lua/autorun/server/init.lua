@@ -2,6 +2,23 @@
 -- the io chainlinks table, as we can't get the io chainlinks from the entity thx gmod :/
 
 
+local function setSecretValues( ent, vals )
+    --[[ A bunch of keyvalues are not attainable using ent:GetKeyValues() so we have to get the manually >:(
+    ]]
+
+    ent:SetColor(vals["rendercolor32"])
+    vals["disableshadows"] = ent:GetInternalVariable("EF_NOSHADOW")
+    local min, max = ent:GetCollisionBounds()
+    vals["mins"] = min
+    vals["maxs"] = max
+    vals["disablereceiveshadows "] = ent:GetInternalVariable("EF_NORECEIVESHADOW")
+    vals["nodamageforces  "] = ent:GetInternalVariable("EFL_NO_DAMAGE_FORCES")
+    vals["angle"] = ent:GetAngles()
+    vals["origin"] = ent:GetPos()
+    vals["targetname"] = ent:GetName()
+    vals["model"] = ent:GetModel()
+end
+
 --[[
     io chainlinks structure:
     - when a new output is created it is stored within the JEE_IO_CHAINLINKS_IDS table
@@ -28,11 +45,13 @@ JEE_IO_CHAINLINKS_TRG = {}
 ]]
 
 -- SEND
-util.AddNetworkString( "startEditor" ) -- sent when we open the editor to tell the client to open it
+util.AddNetworkString( "jhammer_e_startEditor" ) -- sent when we open the editor to tell the client to open it
     -- params: string (entity class), table (keyvalues), table (flags), table (io), table (io), table (misc)
 
+util.AddNetworkString( "jhammer_e_applyEdit" )
+
 -- RECIEVE
-net.Receive( "updateEnt", function( len, ply ) -- recieved when we update an entity from the client
+net.Receive( "jhammer_e_updateEnt", function( len, ply ) -- recieved when we update an entity from the client
     local ent = net.ReadEntity()
     local keys = net.ReadTable()          -- for now we will just send all the keyvalues, io, and flags every time
     local flags = net.ReadTable()         -- if we run into the limit ill fix it in a later version
@@ -45,11 +64,32 @@ net.Receive( "updateEnt", function( len, ply ) -- recieved when we update an ent
 
 end )
 
-net.Receive( "refreshEnt", function( len, ply ) -- recieved when we need to refresh an entity from the client
+net.Receive( "jhammer_e_refreshEnt", function( len, ply ) -- recieved when we need to refresh an entity from the client
     local newPos = net.ReadVector()
     local newClass = net.ReadString()
 
     -- handle refresh, just create the newClass entity with default keyvalues
     -- we keep the io but discard the keyvalues except targetname which gets carried over
+
+end )
+
+net.Receive( "jhammer_e_applyEdit", function( len, ply ) -- recieved when we are done editing and apply settings
+    print("apply edit")
+
+    local ent_id = net.ReadInt(16)
+    local keys = net.ReadTable()          -- for now we will just send all the keyvalues, io, and flags every time
+    local flags = net.ReadTable()         -- if we run into the limit ill fix it in a later version
+    local io_chainlinks = net.ReadTable()
+    local misc = net.ReadTable() -- this one is just other stuff like gmod properties, etc.
+
+    print(ent_id)
+    PrintTable(keys)
+
+    local ent_sv = Entity(ent_id)
+    for k, v in pairs( keys ) do
+        ent_sv:SetKeyValue( k, tostring(v) )
+    end
+    --ent_sv:SetName( keys["targetname"] )
+    --setSecretValues( ent, keys )
 
 end )

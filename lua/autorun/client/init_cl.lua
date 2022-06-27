@@ -32,7 +32,7 @@ local function size(T)
 end
 
 -- main function to create gui
-local function create_egui( className, keys, flags, io, misc )
+local function create_egui( className, keys, flags, io, misc, ent_id )
     -- before we do anything, get all the entity fgs data needed
 
     local ent_fgds_data = ents_fgds_data[className]
@@ -89,6 +89,21 @@ local function create_egui( className, keys, flags, io, misc )
 
         return 0
     end)
+
+    local keys_out = {}
+    local modified_keys = {}
+    local function apply_btn_press()
+        print("apply_btn_press")
+        -- send the stuff to the server in net message
+        net.Start("jhammer_e_applyEdit")
+        net.WriteInt(ent_id, 16)
+        net.WriteTable(keys_out)
+        net.WriteTable(flags)
+        net.WriteTable(io)
+        net.WriteTable(misc)
+
+        net.SendToServer()
+    end
 
     local frame = vgui.Create("DFrame")
     frame:SetTitle("Entity editor")
@@ -175,43 +190,57 @@ local function create_egui( className, keys, flags, io, misc )
 
     local keys_indx_lookup = {}
 
-    -- manual keyvalue list order override:
-    local e_override_keys_list = {}
-    e_override_keys_list["classname"] = true -- this is handled already, so we don't need to add it here
+    local function e_build_keys_list()
+        -- manual keyvalue list order override:
+        local e_override_keys_list = {}
+        e_override_keys_list["classname"] = true -- this is handled already, so we don't need to add it here
 
-    e_keys_list:AddLine( "Name", keys["targetname"] )
-    e_override_keys_list["targetname"] = true
-    keys_indx_lookup[1] = "targetname"
+        local e_override_keys_list = {}
+        e_override_keys_list["spawnflags"] = true -- spawnflags are displayed on a different window
 
-    e_keys_list:AddLine( "Pitch Yaw Roll (Y Z X)", keys["angle"] )
-    e_override_keys_list["angle"] = true
-    keys_indx_lookup[2] = "angle"
+        e_keys_list:AddLine( "Name", keys["targetname"] )
+        e_override_keys_list["targetname"] = true
+        keys_indx_lookup[1] = "targetname"
 
-    -- if the entity has a model, override it to the top of the list
-    if keys["model"] then
-        e_keys_list:AddLine( "Model", keys["model"] )
-        e_override_keys_list["model"] = true
-        keys_indx_lookup[3] = "model"
-    end
+        e_keys_list:AddLine( "Pitch Yaw Roll (Y Z X)", keys["angles"] )
+        e_override_keys_list["angles"] = true
+        keys_indx_lookup[2] = "angles"
 
-    local temp_v = {}
-    local count = size(e_override_keys_list)
-    print(count)
-    for k, v in pairs(keys) do -- loop through the key values, if the key is in the override ignore it, else add to list
-        if e_override_keys_list[k] == nil then
-            if keys_lookup_table[k] ~= nil then
-                temp_v = v
-                if keys_lookup_table[k].type == "choices" then
-                    temp_v = keys_lookup_table[k].choices[v]
-                end
-                e_keys_list:AddLine( keys_lookup_table[k].title, temp_v )
-            else
-                e_keys_list:AddLine( k, v )
+        -- if the entity has a model, override it to the top of the list
+        if keys["model"] then
+            e_keys_list:AddLine( "Model", keys["model"] )
+            e_override_keys_list["model"] = true
+            keys_indx_lookup[3] = "model"
+        end
+
+        for k, v in pairs(keys_lookup_table) do
+            if e_override_keys_list[k] == nil then
+                e_keys_list:AddLine( v.title, keys[k] )
+                e_override_keys_list[k] = true
+                keys_indx_lookup[#keys_indx_lookup + 1] = k
             end
-            keys_indx_lookup[count] = k
-            count = count + 1
+        end
+
+        local temp_v = {}
+        local count = size(e_override_keys_list)
+
+        for k, v in pairs(keys) do -- loop through the key values, if the key is in the override ignore it, else add to list
+            if e_override_keys_list[k] == nil then
+                if keys_lookup_table[k] ~= nil then
+                    temp_v = v
+                    if keys_lookup_table[k].type == "choices" then
+                        temp_v = keys_lookup_table[k].choices[v]
+                    end
+                    e_keys_list:AddLine( keys_lookup_table[k].title, temp_v )
+                else
+                    e_keys_list:AddLine( k, v )
+                end
+                keys_indx_lookup[count] = k
+                count = count + 1
+            end
         end
     end
+    e_build_keys_list()
 
     local e_edit_box_parent = vgui.Create( "DPanel", ents_inf_panel )
     e_edit_box_parent:SetPos( 635, 80 )
@@ -247,8 +276,16 @@ local function create_egui( className, keys, flags, io, misc )
         return false
     end
 
+    local e_keys_list_curr_selected = ""
+
     e_keys_list.OnRowSelected = function( Panel, rowIndex )
+        e_keys_list_curr_selected = keys_indx_lookup[rowIndex]
+
         local temp = keys_lookup_table[keys_indx_lookup[rowIndex]]
+        --PrintTable(keys_lookup_table)
+        -- :: classname ::               :: value of prop ::            :: 
+        --print(keys_indx_lookup[rowIndex], keys[keys_indx_lookup[rowIndex]], temp)
+
         if temp == nil then
             if keys_lookup_table[string.lower(keys_indx_lookup[rowIndex])] == nil then
                 e_description_text:SetText( "No decription found" ) 
@@ -267,10 +304,32 @@ local function create_egui( className, keys, flags, io, misc )
         end
 
         e_edit_box_lbl:SetText( temp.title .. " (" .. temp.type .. "):" )
-        print(temp.deflt)
         e_edit_box:SetPlaceholderText( tostring(temp.deflt) )
+        if keys[keys_indx_lookup[rowIndex]] ~= nil then
+            e_edit_box:SetText( keys[keys_indx_lookup[rowIndex]] )
+        else 
+            e_edit_box:SetText( "" )
+        end
     end
 
+    e_edit_box.OnEnter = function( curr )
+        keys[e_keys_list_curr_selected] = curr:GetValue()
+        table.insert(modified_keys, e_keys_list_curr_selected)
+        e_keys_list:Clear()
+        e_build_keys_list()
+    end
+
+    local e_apply_btn = vgui.Create( "DButton", ents_inf_panel )
+    e_apply_btn:SetPos( 635, 770 )
+    e_apply_btn:SetSize( 300, 40 )
+    e_apply_btn:SetText( "Apply" )
+    e_apply_btn:SetDark( 1 )
+    function e_apply_btn:DoClick() -- Defines what should happen when the label is clicked
+        for k, v in ipairs(modified_keys) do
+            keys_out[v] = keys[v]
+        end
+        apply_btn_press()
+    end
 
 end
 
@@ -293,8 +352,9 @@ end
     -- params: ent (entity to modify), table (table of flags), table (io table), table (misc table)
 
 -- RECIEVE
-net.Receive( "startEditor", function( len, ply ) -- recieved when we need to open the gui
+net.Receive( "jhammer_e_startEditor", function( len, ply ) -- recieved when we need to open the gui
     local class = net.ReadString()
+    local ent_id = net.ReadInt(16)
     local keys = net.ReadTable()          -- for now we will just send all the keyvalues, io, and flags every time
     local flags = net.ReadTable()         -- if we run into the limit ill fix it in a later version
     local io_chainlinks = net.ReadTable()
@@ -302,6 +362,6 @@ net.Receive( "startEditor", function( len, ply ) -- recieved when we need to ope
 
     -- handle start editor
 
-    create_egui( class, keys, flags, io_chainlinks, misc )
+    create_egui( class, keys, flags, io_chainlinks, misc, ent_id )
 
 end )

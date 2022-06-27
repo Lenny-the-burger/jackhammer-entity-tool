@@ -85,8 +85,10 @@ function TOOL:LeftClick( trace )
     keys = getSecretValues( ent, keys )
 
     -- tell the client to start the editor
-    net.Start( "startEditor" )
+    net.Start( "jhammer_e_startEditor" )
+        print(ent:GetClass())
         net.WriteString( ent:GetClass() )
+        net.WriteInt( ent:EntIndex(), 16 )
         net.WriteTable( keys )
         net.WriteTable( {} ) -- flags
         net.WriteTable( {} ) -- io chainlinks
@@ -131,8 +133,9 @@ function TOOL:Reload( trace )
     undo.Finish()
 
     -- tell the client to start the editor
-    net.Start( "startEditor" )
+    net.Start( "jhammer_e_startEditor" )
         net.WriteString( ent:GetClass() )
+        net.WriteInt( ent:EntIndex(), 16 )
         net.WriteTable( keys )
         net.WriteTable( {} ) -- flags
         net.WriteTable( {} ) -- io chainlinks
