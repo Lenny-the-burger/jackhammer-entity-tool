@@ -24,6 +24,13 @@ local function super_vectorize(tbl, func)
     end
 end
 
+-- somehow lua does not have a good way to get the size of a table wtf???
+local function size(T)
+    local count = 0
+    for _ in pairs(T) do count = count + 1 end
+    return count
+end
+
 -- main function to create gui
 local function create_egui( className, keys, flags, io, misc )
     -- before we do anything, get all the entity fgs data needed
@@ -76,14 +83,12 @@ local function create_egui( className, keys, flags, io, misc )
         if inp == nil then return end
         if ents_fgds_data[inp].properties == nil then return end
 
-        --PrintTable(ents_fgds_data[inp])
         for k, v in pairs(ents_fgds_data[inp].properties) do
-            keys_lookup_table[v.name] = v.title
+            keys_lookup_table[v.name] = v
         end
 
         return 0
     end)
-
 
     local frame = vgui.Create("DFrame")
     frame:SetTitle("Entity editor")
@@ -168,41 +173,63 @@ local function create_egui( className, keys, flags, io, misc )
     e_keys_list:AddColumn( "Key" )
     e_keys_list:AddColumn( "Value" )
 
+    local keys_indx_lookup = {}
+
     -- manual keyvalue list order override:
     local e_override_keys_list = {}
     e_override_keys_list["classname"] = true -- this is handled already, so we don't need to add it here
 
     e_keys_list:AddLine( "Name", keys["targetname"] )
     e_override_keys_list["targetname"] = true
+    keys_indx_lookup[1] = "targetname"
 
     e_keys_list:AddLine( "Pitch Yaw Roll (Y Z X)", keys["angle"] )
     e_override_keys_list["angle"] = true
+    keys_indx_lookup[2] = "angle"
 
     -- if the entity has a model, override it to the top of the list
     if keys["model"] then
         e_keys_list:AddLine( "Model", keys["model"] )
         e_override_keys_list["model"] = true
+        keys_indx_lookup[3] = "model"
     end
 
+    local temp_v = {}
+    local count = size(e_override_keys_list)
+    print(count)
     for k, v in pairs(keys) do -- loop through the key values, if the key is in the override ignore it, else add to list
         if e_override_keys_list[k] == nil then
             if keys_lookup_table[k] ~= nil then
-                e_keys_list:AddLine( keys_lookup_table[k], v )
+                temp_v = v
+                if keys_lookup_table[k].type == "choices" then
+                    temp_v = keys_lookup_table[k].choices[v]
+                end
+                e_keys_list:AddLine( keys_lookup_table[k].title, temp_v )
             else
                 e_keys_list:AddLine( k, v )
             end
+            keys_indx_lookup[count] = k
+            count = count + 1
         end
     end
 
-    local e_description_text_actual = ent_fgds_data.description
+    local e_edit_box_parent = vgui.Create( "DPanel", ents_inf_panel )
+    e_edit_box_parent:SetPos( 635, 80 )
+    e_edit_box_parent:SetSize( 300, 40 )
+    e_edit_box_parent:SetPaintBackground( false )
 
-    e_keys_list.OnRowSelected = function( panel, rowIndex, row )
-        local key = row:GetValue( 1 )
-        local val = row:GetValue( 2 )
-    end
+    local e_edit_box_lbl = vgui.Create( "DLabel", e_edit_box_parent )
+    e_edit_box_lbl:SetDark( 1 )
+    e_edit_box_lbl:SetText( "Keyvalue name (data type):" )
+    e_edit_box_lbl:Dock( TOP )
+
+    local e_edit_box = vgui.Create( "DTextEntry", e_edit_box_parent )
+    e_edit_box:SetText( "" )
+    e_edit_box:SetPlaceholderText( "Default value" )
+    e_edit_box:Dock( FILL )
 
     local e_description_parent = vgui.Create( "DPanel", ents_inf_panel )
-    e_description_parent:SetPos( 635, 250 )
+    e_description_parent:SetPos( 635, 170 )
     e_description_parent:SetSize( 300, 300 )
     e_description_parent:SetPaintBackground( false )
     
@@ -212,12 +239,36 @@ local function create_egui( className, keys, flags, io, misc )
     e_description_lbl:Dock( TOP )
 
     local e_description_text = vgui.Create( "DTextEntry", e_description_parent )
-    e_description_text:SetText( e_description_text_actual )
+    e_description_text:SetText( ent_fgds_data.description )
     e_description_text:SetMultiline( true )
     e_description_text:Dock( FILL )
     e_description_text:SetEditable( false )
     e_description_text.AllowInput = function( self, stringValue )
         return false
+    end
+
+    e_keys_list.OnRowSelected = function( Panel, rowIndex )
+        local temp = keys_lookup_table[keys_indx_lookup[rowIndex]]
+        if temp == nil then
+            if keys_lookup_table[string.lower(keys_indx_lookup[rowIndex])] == nil then
+                e_description_text:SetText( "No decription found" ) 
+                e_edit_box_lbl:SetText( keys_indx_lookup[rowIndex] .. " (unknown type):" )
+                e_edit_box:SetPlaceholderText( "Default value" )
+                return
+            else
+                temp = keys_lookup_table[string.lower(keys_indx_lookup[rowIndex])]
+            end
+        end
+
+        if temp.description ~= nil then
+            e_description_text:SetText( temp.description )
+        else 
+            e_description_text:SetText( "No decription found" )
+        end
+
+        e_edit_box_lbl:SetText( temp.title .. " (" .. temp.type .. "):" )
+        print(temp.deflt)
+        e_edit_box:SetPlaceholderText( tostring(temp.deflt) )
     end
 
 
